@@ -28,11 +28,13 @@ int main(int argc,char** argv)
 	char* packName;
 	char* proName;
 	char* proDir;
+	char* className;
 	int dbg = 0;
 
 	if((packName=(char*)malloc(sizeof(char)*128))==NULL) return putError(5);
 	if((proName= (char*)malloc(sizeof(char)*128))==NULL) return putError(5);
 	if((proDir= (char*)malloc(sizeof(char)*128))==NULL) return putError(5);
+	if((className=(char*)malloc(sizeof(char)*128))==NULL) return putError(5);
 
 	for(int i = 1;i<argc;++i){
 		dbg=!strcmp(argv[i],"-debug");
@@ -74,6 +76,14 @@ DEBUG_VAR("assignment",proName);
 				my_strcpy(packName,argv[i],2);
 
 DEBUG_VAR("assignment",packName);
+			}else if(argv[i][1]=='c'){
+				if(strlen(argv[i])<3){
+					if(++i<argc&&argv[i][0]!='-') my_strcpy(className,argv[i],0);
+					else return putError(2);
+				}else
+				my_strcpy(className,argv[i],2);
+
+DEBUG_VAR("assignment",className);
 			}else if(argv[i][1]=='d'){
 				if(strlen(argv[i])<3){
 					if(++i<argc&&argv[i][0]!='-') my_strcpy(proDir,argv[i],0);
@@ -114,17 +124,18 @@ DEBUG_VAR("assignment",proDir);
 	if(!strlen(proDir)){
 		my_strcpy(proDir,"./",0);
 	}
+	if(!strlen(className)){
+		my_strcpy(className,proName,0);
+	}
+
 
 /*Replace word <.> to </> in here
 Make a path to Create project and package
 */
-	int i = 0;
-	while(packName[i]!='\0'){
-		if(packName[i]=='.')
-		packName[i]='/';
-		++i;
-	}
-DEBUG_VAR("Replace",packName);
+
+
+// 	myReplace(packName,'.','/');
+// DEBUG_VAR("Replace",packName);	
 	
 	char  packPath[128];
 	
@@ -132,13 +143,12 @@ DEBUG_VAR("Replace",packName);
 		strcat(proDir,"/");
 	}
 	strcat(proDir,proName);
-	strcpy(packPath,proDir);
-	strcat(packPath,"/src/");
-	strcat(packPath,packName);
+	sprintf(packPath,"%s/src/%s",proDir,myReplace(packName,'.','/'));
 	strcat(proDir,"/bin");
 
 DEBUG_VAR("finaly",proDir);
 DEBUG_VAR("finaly",packPath);
+DEBUG_VAR("finaly",className);
 
 //Create directory in here
 
@@ -148,7 +158,9 @@ DEBUG_VAR("finaly",packPath);
 DEBUG_VAR("",loge);
 	loge = crProject(proName);
 DEBUG_VAR("",loge);
-	loge = crMakefile(proName);
+	loge = crMakefile(proName,packName);
+DEBUG_VAR("",loge);
+	loge = crClass(packPath,packName,className);
 DEBUG_VAR("",loge);
 
 
@@ -158,6 +170,8 @@ DEBUG_VAR("",loge);
 	packName=NULL;
 	free(proDir);
 	proDir=NULL;
+	free(className);
+	className=NULL;
 
 	return 0;
 }
@@ -202,19 +216,6 @@ int crDir(const char* sPathName)
 	DirName=NULL;
 	return 0;  
 }
-
-char *my_strcpy(char *dst,const char *src,int start)  
-{  
-    assert(dst != NULL);  
-    assert(src != NULL);  
-    char *ret = dst;
-    memcpy(dst,src+start,strlen(src)-start);
-    return ret;  
-}
-
-// char* repPath(char* path,){
-
-// }
 
 char* crClasspath(char* proName)
 {
@@ -311,38 +312,28 @@ char* crProject(char* proName)
 
 }
 
-char* crMakefile(char* proName)
+char* crMakefile(char* proName,char* packName)
 {		
 	char* path;
 	if((path = (char*)malloc(sizeof(char)*128))==NULL) return putError(5);
 	char* loge;
-	strcpy(path,proName);
-	strcat(path,"/Makefile");
+	sprintf(path,"%s/Makefile",proName);
 	FILE *fp;
 	if((fp=fopen(path,"w+"))==NULL) return putError(6);
-/*
-Target = com.newer.demo.$(class)
-Objs= ./bin/$(path)/*.class
 
-all:$(Target)
-	clear;
-	java -classpath ./bin $< $(args)
+	char line1[128];
+	sprintf(line1,"Target=%s.$(class)\n",packName);
 
-$(Target):
-	javac -d ./bin src/com/newer/demo/*.java
+	char line2[128];
+	sprintf(line2,"	javac -d ./bin ./src/%s/*.java\n\n",myReplace(packName,'.','/'));
 
-clean:
-	-rm -rf ./bin/*
-*/
-
-
-	if(fileWriteLine(fp,"Target = com.newer.demo.$(class)\n"))
+	if(fileWriteLine(fp,line1))
 	if(fileWriteLine(fp,"Objs= ./bin/$(path)/*.class\n\n"))
 	if(fileWriteLine(fp,"all:$(Target)\n"))
 	if(fileWriteLine(fp,"	clear;\n"))
 	if(fileWriteLine(fp,"	java -classpath ./bin $< $(args)\n\n"))
 	if(fileWriteLine(fp,"$(Target):\n"))
-	if(fileWriteLine(fp,"	javac -d ./bin src/com/newer/demo/*.java\n\n"))
+	if(fileWriteLine(fp,line2))
 	if(fileWriteLine(fp,"clean:\n"))
 	if(fileWriteLine(fp,"	-rm -rf ./bin/*\n"))
 	loge = "create Makefile success！";
@@ -353,13 +344,36 @@ clean:
 	return loge;
 }
 
-int fileWriteLine(FILE* fp,char* linner)
-{
 
-	if(fp==NULL) return putError(6);
-	fputs(linner,fp);
-	return 1;
-	// fclose(fp);
+char* crClass(char* packPath,char*packName,char* class)
+{
+	char* path;
+	if((path = (char*)malloc(sizeof(char)*128))==NULL) return putError(5);
+	char* loge;
+	sprintf(path,"%s/%s.java",packPath,class);
+
+	FILE *fp;	
+	if((fp=fopen(path,"w+"))==NULL) return putError(6);
+
+	char line[128];
+	sprintf(line,"package %s;\n\n",packName);
+
+	char line2[128];
+	sprintf(line2,"public class %s {\n\n    public %s () {\n			\n	}\n\n}",class,class);
+
+	char line3[128];
+	sprintf(line3,"/**\n * %s\n */\n",class);
+
+	if(fileWriteLine(fp,line))
+	if(fileWriteLine(fp,line3))
+	if(fileWriteLine(fp,line2))
+	loge = "create Class success！";
+
+	fclose(fp);
+	fp=NULL;
+	free(path);
+	path=NULL;
+	return loge;
 }
 
 // int crProject(char* path){
