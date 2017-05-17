@@ -44,11 +44,14 @@ DEBUG_ARGLEN;
 	{
 		
 		if(argv[i][0]!='-'){
-			// if(i==argc){
-			// 	return putError(1);
-			// }
-			// break;
-			return putError(1);
+			if(argc<2){
+				return putError(1);
+			}
+			my_strcpy(proName,argv[i],0);
+			if(++i<argc&&argv[i][0]!='-'&&argv[i][0]!='.') my_strcpy(packName,argv[i],0);
+			else return putError(2);
+			break;
+			// return putError(1);
 		}else{
 			
 DEBUG_VARLIST;
@@ -145,6 +148,9 @@ DEBUG_VAR("finaly",packPath);
 DEBUG_VAR("",loge);
 	loge = crProject(proName);
 DEBUG_VAR("",loge);
+	loge = crMakefile(proName);
+DEBUG_VAR("",loge);
+
 
 	free(proName);
 	proName=NULL;
@@ -305,17 +311,55 @@ char* crProject(char* proName)
 
 }
 
-char* crMakefile(char* path)
-{
+char* crMakefile(char* proName)
+{		
+	char* path;
+	if((path = (char*)malloc(sizeof(char)*128))==NULL) return putError(5);
+	char* loge;
+	strcpy(path,proName);
+	strcat(path,"/Makefile");
 	FILE *fp;
 	if((fp=fopen(path,"w+"))==NULL) return putError(6);
+/*
+Target = com.newer.demo.$(class)
+Objs= ./bin/$(path)/*.class
 
-	fputs("makefile",fp);
+all:$(Target)
+	clear;
+	java -classpath ./bin $< $(args)
+
+$(Target):
+	javac -d ./bin src/com/newer/demo/*.java
+
+clean:
+	-rm -rf ./bin/*
+*/
+
+
+	if(fileWriteLine(fp,"Target = com.newer.demo.$(class)\n"))
+	if(fileWriteLine(fp,"Objs= ./bin/$(path)/*.class\n\n"))
+	if(fileWriteLine(fp,"all:$(Target)\n"))
+	if(fileWriteLine(fp,"	clear;\n"))
+	if(fileWriteLine(fp,"	java -classpath ./bin $< $(args)\n\n"))
+	if(fileWriteLine(fp,"$(Target):\n"))
+	if(fileWriteLine(fp,"	javac -d ./bin src/com/newer/demo/*.java\n\n"))
+	if(fileWriteLine(fp,"clean:\n"))
+	if(fileWriteLine(fp,"	-rm -rf ./bin/*\n"))
+	loge = "create Makefile success！";
 	fclose(fp);
+	fp=NULL;
+	free(path);
+	path=NULL;
+	return loge;
 }
 
-int fileWriteLine(char* path,char* file)
+int fileWriteLine(FILE* fp,char* linner)
 {
+
+	if(fp==NULL) return putError(6);
+	fputs(linner,fp);
+	return 1;
+	// fclose(fp);
 }
 
 // int crProject(char* path){

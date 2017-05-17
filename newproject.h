@@ -22,7 +22,7 @@ char* crProject(char*);
 
 char* crMakefile(char*);
 
-int fileWriteLine(char*,char*);
+int fileWriteLine(FILE*,char*);
 
 /*
 This is a function that is used to handle errors and give hints, 
@@ -49,6 +49,9 @@ int putError(int state){
 		case 5:
 			printf("内存分配错误，请清理内存并重试！\n");
 			return 5;
+		case 6:
+			printf("创建文件指针失败!\n");
+			return 6;
 		default:
 			printf("未知错误！");
 			return 0;
