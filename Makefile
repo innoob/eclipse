@@ -1,6 +1,6 @@
-Target=newproject
+Target=newproject project
 CFLAG=-g -I . `xml2-config --cflags --libs`
-Objs=$(Target).o
+Objs=newproject.o project.o
 
 all: $(Target)
 	clear

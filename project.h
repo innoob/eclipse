@@ -4,23 +4,15 @@ the program's debug and exception handling,
 which defines the debug macros and all the functions declared
 */
 
-#ifndef NEWPROJECT
-#define NEWPROJECT
+#ifndef PROJECT
+#define PROJECT
 
 
-int putError(int);
 
-int crDir(const char*);
-
-int crPath(void);
-
-char* crClasspath(char*);
-
-char* crProject(char*);
-
-char* crMakefile(char*,char*);
-
-char* crClass(char*,char*,char*);
+char* crStruct(char*,char*,char*);
+char* crMain(char*,char*,char*);
+char* crTemp(char*,char*,char*,int);
+char* getset(char*);
 
 /*
 This is a function that is used to handle errors and give hints, 
