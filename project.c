@@ -275,7 +275,7 @@ char* getset(char* file)
 	// int res = stat(file,&buf);
 	char* loge;
 	char buff[512];
-	// char* doc;
+	char doc[512];
 	FILE *fp;
 
 	printf("getin:%s\n",file);
@@ -289,8 +289,10 @@ char* getset(char* file)
 	// doc= (char*)malloc(sizeof(char)*size);
 	// fgets(fp,size,doc);
 	while(fgets(buff,sizeof(buff),fp)){
-		if(strstr(buff,"private"))
+		if(strstr(buff,"private")){
+			
 		printf("%s",buff);
+		}
 		
 	}
 	// fread(doc,size,1,fp);

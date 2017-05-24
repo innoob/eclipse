@@ -20,3 +20,6 @@ install:$(Target)
 
 uninstall:
 	sudo rm /bin/$(Target)
+
+update:
+	git pull https://github.com/InNoob/eclipse.git
