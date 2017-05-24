@@ -107,7 +107,7 @@ DEBUG_VAR("finaly",classType);
 	}
 DEBUG_VAR("finaly",className);
 	if(!strlen(packName)){
-		my_strcpy(packName,strstr(directory,"/src/"),5);
+		my_strcpy(packName,strstr(directory,"src/"),4);
 	}
 DEBUG_VAR("finaly",myReplace(packName,'/','.'));
 
