@@ -124,7 +124,6 @@ DEBUG_VAR("finaly",myReplace(packName,'/','.'));
 		return putError(2);
 
 	}else{
-		printf("in\n");
 		getset(filePath);
 	}
 
@@ -270,60 +269,41 @@ char* crTemp(char* directory,char* packName,char* class,int item)
 
 char* getset(char* file)
 {
-	// struct stat buf;
-
-	// int res = stat(file,&buf);
-	char* loge;
+	char* loge=NULL;
 	char buff[512];
 	char doc[512];
-	FILE *fp;
+	char varib[256];
+	char field[256];
+	FILE *fp=NULL;
 
-	printf("getin:%s\n",file);
-	if((fp=fopen(file,"r"))==NULL) return putError(6);
-	// fseek(fp,0,SEEK_END);
-	// long size=ftell(fp);
-	// fseek(fp,0,SEEK_SET);
-	// fclose(fp);
-	// rewind(fp);
-	// printf("size:%ld\n",size);
-	// doc= (char*)malloc(sizeof(char)*size);
-	// fgets(fp,size,doc);
-	while(fgets(buff,sizeof(buff),fp)){
-		if(strstr(buff,"private")){
-			
-		printf("%s",buff);
+	if((fp=fopen(file,"r+"))==NULL) return putError(6);
+	char* box[10];
+	int pt =0;
+	int pv = 0;
+	int pf=0;
+	while(fgets(buff,sizeof(buff),fp)!=NULL){
+		if(strstr(buff,"class")!=NULL){
+			my_split(box,buff," ");
+			pv+=sprintf(varib+pv,"\n\n\tpublic %s (",box[1]);
 		}
-		
+		if(strstr(buff,"private")!=NULL){
+			int num = my_split(box,buff," ;")-2;
+				pt+=sprintf(doc+pt,"\tpublic %s get%s(){\n\t\treturn this.%s;\n\t}\n",box[0],pascalName(box[1]),box[1]);
+				pt+=sprintf(doc+pt,"\tpublic void set%s(%s %s){\n\t\tthis.%s=%s;\n\t}\n",pascalName(box[1]),box[0],box[1],box[1],box[1]);
+				if(varib[pv-1]=='(')
+				pv+=sprintf(varib+pv,"%s %s",box[0],box[1]);
+				else
+				pv+=sprintf(varib+pv,",%s %s",box[0],box[1]);
+				pf+=sprintf(field+pf,"\t\tthis.%s = %s;\n",box[1],box[1]);
+		}
 	}
-	// fread(doc,size,1,fp);
-	// doc[size-1] = '\0';
-	// printf("%s",doc);
-
-	// printf(strstr(doc,"private"));
-	// char **item;
-	// printf("%c",doc[1]);
-	
-	// for(int i =0;i<size-1;i++)
-	// printf(doc[i]);
-
-	// printf("doc[0]=%c\n",doc[0]);
-	// printf("doc[1]=%c\n",doc[1]);
-	// printf("doc[size-1]=%c\n",doc[size-1]);
-	// printf("doc[size]=%c\n",doc[size]);
-
-
-
-	// doc[size]
-	// for(int i =0 ;i<size)
-	// char line[128];
-	// sprintf(line,"package %s;\n\n",packName);
-
-	// char line2[128];
-	// sprintf(line2,"public class %s {\n\n    public static void main (String args[]) {\n			\n	}\n\n}",class);
-
-	// char line3[128];
-	// sprintf(line3,"/**\n * %s\n */\n",class);
-
+	int ft = 0;
+	fseek(fp,ft,SEEK_END);
+	while('}'!=fgetc(fp)){
+		fseek(fp,--ft,SEEK_END);
+	}
+	fseek(fp,--ft,SEEK_END);
+	fprintf(fp,"%s){\n%s\t}\n%s\n}",varib,field,doc);
 	// if(fileWriteLine(fp,line))
 	// if(fileWriteLine(fp,line3))
 	// if(fileWriteLine(fp,line2))
@@ -332,6 +312,10 @@ char* getset(char* file)
 	// doc=NULL;
 	fclose(fp);
 	fp=NULL;
+	// for(int i= 0 ;i<pt;i++)
+	// free(box[i]);
+	// free(box);
+	// box=NULL;
 	// free(file);
 	// file=NULL;
 	return loge;

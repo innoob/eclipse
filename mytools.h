@@ -13,13 +13,16 @@ int fileWriteLine(FILE*,char*);
 
 char* myReplace(const char*,const char,const char);
 
+int my_split(char*[] ,char* ,const char*);
+
+char* pascalName(char*);
+
 int is_num(const char*);
 
 char cpy[128];
 
 int fileWriteLine(FILE* fp,char* linner)
 {
-
 	if(fp==NULL) return putError(6);
 	fputs(linner,fp);
 	return 1;
@@ -42,6 +45,23 @@ char* my_strcpy(char *dst,const char *src,int start)
     char *ret = dst;
     memcpy(dst,src+start,strlen(src)-start);
     return ret;  
+}
+
+int my_split(char* box[],char* str,const char* tok)
+{
+	int i=0;
+	strtok(str,tok);
+	while((box[i++]=strtok(NULL,tok)));
+	return i;
+}
+
+char* pascalName(char* name)
+{
+	memset(cpy,0,sizeof(cpy));
+	strcpy(cpy,name);
+	if(islower(cpy[0]))
+	cpy[0]-=32;
+	return cpy;	
 }
 
 int is_num(const char* str)
