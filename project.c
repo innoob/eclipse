@@ -277,25 +277,32 @@ char* getset(char* file)
 	FILE *fp=NULL;
 
 	if((fp=fopen(file,"r+"))==NULL) return putError(6);
-	char* box[10];
+	char* box[20];
 	int pt =0;
 	int pv = 0;
 	int pf=0;
+	int num=0;
 	while(fgets(buff,sizeof(buff),fp)!=NULL){
 		if(strstr(buff,"class")!=NULL){
 			my_split(box,buff," ");
 			pv+=sprintf(varib+pv,"\n\n\tpublic %s (",box[1]);
 		}
 		if(strstr(buff,"private")!=NULL){
-			int num = my_split(box,buff," ;")-2;
-				pt+=sprintf(doc+pt,"\tpublic %s get%s(){\n\t\treturn this.%s;\n\t}\n",box[0],pascalName(box[1]),box[1]);
-				pt+=sprintf(doc+pt,"\tpublic void set%s(%s %s){\n\t\tthis.%s=%s;\n\t}\n",pascalName(box[1]),box[0],box[1],box[1],box[1]);
-				if(varib[pv-1]=='(')
-				pv+=sprintf(varib+pv,"%s %s",box[0],box[1]);
-				else
-				pv+=sprintf(varib+pv,",%s %s",box[0],box[1]);
-				pf+=sprintf(field+pf,"\t\tthis.%s = %s;\n",box[1],box[1]);
+			num = my_split(box,buff," ;")-2;
+			pt+=sprintf(doc+pt,"\tpublic %s get%s(){\n\t\treturn this.%s;\n\t}\n",box[0],pascalName(box[1]),box[1]);
+			pt+=sprintf(doc+pt,"\tpublic void set%s(%s %s){\n\t\tthis.%s=%s;\n\t}\n",pascalName(box[1]),box[0],box[1],box[1],box[1]);
+			if(varib[pv-1]=='(')
+			pv+=sprintf(varib+pv,"%s %s",box[0],box[1]);
+			else
+			pv+=sprintf(varib+pv,",%s %s",box[0],box[1]);
+			pf+=sprintf(field+pf,"\t\tthis.%s = %s;\n",box[1],box[1]);
 		}
+	}
+	if(!num){
+		fclose(fp);
+		fp=NULL;
+		loge="variable not found!";
+		return loge;
 	}
 	int ft = 0;
 	fseek(fp,ft,SEEK_END);
