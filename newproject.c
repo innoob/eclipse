@@ -227,6 +227,7 @@ char* crClasspath(char* proName)
 	strcat(path,"/.classpath");
 
 	xmlDoc* doc = xmlNewDoc(BAD_CAST"1.0");
+	doc->encoding = BAD_CAST strdup("UTF-8");
 	xmlNode* root = xmlNewNode(NULL,BAD_CAST"classpath");
 	xmlDocSetRootElement(doc,root);
 	xmlNode* chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
@@ -241,8 +242,10 @@ char* crClasspath(char* proName)
 	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"output");
 	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"bin");
 	xmlAddChild(root,chnode);
-	
-	if(!xmlSaveFile(path,doc)){
+	xmlKeepBlanksDefault(0);
+	xmlIndentTreeOutput=1;
+
+	if(!xmlSaveFormatFile(path,doc,1)){
 		loge = "create .classpath failed!";
 	}else{
 		loge="create .classpath success!";
@@ -264,6 +267,7 @@ char* crProject(char* proName)
 	strcat(path,"/.project");
 
 	xmlDoc* doc = xmlNewDoc(BAD_CAST"1.0");
+	doc->encoding = BAD_CAST strdup("UTF-8");
 	xmlNode* root = xmlNewNode(NULL,BAD_CAST"projectDescription");
 	xmlDocSetRootElement(doc,root);
 	xmlNode* chnode = xmlNewNode(NULL,BAD_CAST"name");
@@ -271,15 +275,12 @@ char* crProject(char* proName)
 	xmlAddChild(root,chnode);
 
 	chnode = xmlNewNode(NULL,BAD_CAST"comment");
-	xmlNodeAddContent(chnode,"\n");
 	xmlAddChild(root,chnode);
 
 	chnode = xmlNewNode(NULL,BAD_CAST"projects");
-	xmlNodeAddContent(chnode,"\n");
 	xmlAddChild(root,chnode);
 
 	chnode = xmlNewNode(NULL,BAD_CAST"buildSpec");
-	xmlNodeAddContent(chnode,"\n");
 	xmlAddChild(root,chnode);
 	xmlNode* itemnode = xmlNewNode(NULL,BAD_CAST"buildCommand");
 	xmlAddChild(chnode,itemnode);
@@ -287,18 +288,18 @@ char* crProject(char* proName)
 	xmlNodeAddContent(chnode,"org.eclipse.jdt.core.javabuilder");
 	xmlAddChild(itemnode,chnode);
 	chnode = xmlNewNode(NULL,BAD_CAST"arguments");
-	xmlNodeAddContent(chnode,"\n");
 	xmlAddChild(itemnode,chnode);
 
 
 	chnode = xmlNewNode(NULL,BAD_CAST"natures");
-	xmlNodeAddContent(chnode,"\n");
 	xmlAddChild(root,chnode);
 	itemnode = xmlNewNode(NULL,BAD_CAST"nature");
 	xmlNodeAddContent(itemnode,"org.eclipse.jdt.core.javanature");
 	xmlAddChild(chnode,itemnode);
+	xmlKeepBlanksDefault(0);
+	xmlIndentTreeOutput=1;
 
-	if(!xmlSaveFile(path,doc)){
+	if(!xmlSaveFormatFile(path,doc,1)){
 		loge="create .project failed!";
 	}else{
 		loge="create .project success!";

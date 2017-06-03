@@ -17,6 +17,7 @@ int main(int argc,char** argv)
 	char* directory;
 	char* packName;
 	char* filePath;
+	char* addjar;
 	int dbg = 0;
 
 	if((className=(char*)malloc(sizeof(char)*128))==NULL) return putError(5);
@@ -24,6 +25,7 @@ int main(int argc,char** argv)
 	if((directory=(char*)malloc(sizeof(char)*128))==NULL) return putError(5);
 	if((packName=(char*)malloc(sizeof(char)*128))==NULL) return putError(5);
 	if((filePath=(char*)malloc(sizeof(char)*128))==NULL) return putError(5);
+	if((addjar=(char*)malloc(sizeof(char)*128))==NULL) return putError(5);
 
 	// for(int i = 1;i<argc;++i){
 	// 	dbg=!strcmp(argv[i],"-debug");
@@ -76,6 +78,14 @@ DEBUG_VAR("assignment",className);
 				my_strcpy(filePath,argv[i],2);
 
 DEBUG_VAR("assignment",filePath);
+			}else if(argv[i][1]=='a'){
+				if(strlen(argv[i])<3){
+					if(++i<argc&&argv[i][0]!='-') my_strcpy(addjar,argv[i],0);
+					else return putError(2);
+				}else
+				my_strcpy(addjar,argv[i],2);
+
+DEBUG_VAR("assignment",addjar);
 			}else if(argv[i][1]=='d'){
 				if(strlen(argv[i])<3){
 					if(++i<argc&&argv[i][0]!='-') my_strcpy(directory,argv[i],0);
@@ -90,7 +100,17 @@ DEBUG_VAR("assignment",directory);
 		}
 	}
 
+	char* loge;
 	if(!strlen(filePath)){
+	if(strlen(addjar)){
+		if((strstr(addjar,".jar")-addjar)+4==strlen(addjar)){
+			loge=addpath(addjar);
+			return;
+		}else{
+			printf("这不是一个有效的jar包");
+			return;
+		}
+	}
 		
 	if(!strlen(directory)){
 		return putError(1);
@@ -111,8 +131,6 @@ DEBUG_VAR("finaly",className);
 	}
 DEBUG_VAR("finaly",myReplace(packName,'/','.'));
 
-
-	char* loge;
 	if(!strcmp(classType,"struct"))
 		loge=crStruct(directory,(char*)myReplace(packName,'/','.'),className);
 	else if(!strcmp(classType,"main"))
@@ -152,6 +170,8 @@ DEBUG_VAR("finaly",myReplace(packName,'/','.'));
 	className=NULL;
 	free(directory);
 	directory=NULL;
+	free(addjar);
+	addjar=NULL;
 	return 0;
 }
 
@@ -326,4 +346,66 @@ char* getset(char* file)
 	// free(file);
 	// file=NULL;
 	return loge;
+}
+char* addpath(char* jarpath)
+{
+	FILE* fp;
+	if((fp = fopen(".classpath","r+"))==NULL){
+		printf("当前目录不在项目地址");
+		return;
+	}
+
+	crDir("lib");
+	char cmd[128];
+	sprintf(cmd,"cp %s lib/",jarpath);
+	system(cmd);
+
+	char jarname[128];
+	int l = strlen(jarpath);
+	while(l-->0)
+		if(jarpath[l]=='/')
+		break;
+	my_strcpy(jarname,jarpath,l);
+	
+	char addline[128];
+	sprintf(addline,"\t<classpathentry kind=\"lib\" path=\"lib%s\"/>\n</classpath>\0",jarname);
+	fseek(fp,-13,SEEK_END);
+	fputs(addline,fp);
+
+	free(fp);
+	fp=NULL;
+}
+int crDir(const char* sPathName)  
+{  
+	// char DirName[256];
+	char * DirName;
+	if((DirName = (char*)malloc(sizeof(char)*strlen(sPathName)))==NULL) return putError(5);
+	strcpy(DirName, sPathName);  
+	int i,len = strlen(DirName);  
+	if(DirName[len-1]!='/')
+	strcat(DirName, "/");  
+
+	len = strlen(DirName);
+
+	for(i=1; i<len; ++i)  
+	{
+		if(DirName[i]=='/')  
+		{  
+			DirName[i] = 0;  
+			if(access(DirName, NULL)!=0 )  
+			{
+				if(mkdir(DirName, 0755)==-1)  
+				{
+					perror("mkdir error");
+					free(DirName);
+					DirName=NULL;
+					return -1; 
+				}
+			}
+			DirName[i] = '/';
+		}
+	}
+	free(DirName);
+	DirName=NULL;
+	return 0;  
 }

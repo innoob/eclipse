@@ -13,6 +13,8 @@ char* crStruct(char*,char*,char*);
 char* crMain(char*,char*,char*);
 char* crTemp(char*,char*,char*,int);
 char* getset(char*);
+char* addpath(char*);
+int crDir(const char*);
 
 /*
 This is a function that is used to handle errors and give hints, 
