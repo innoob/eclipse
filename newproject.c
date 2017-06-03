@@ -326,13 +326,13 @@ char* crMakefile(char* proName,char* packName)
 	sprintf(line1,"Target=%s.$(class)\n",packName);
 
 	char line2[128];
-	sprintf(line2,"	javac -d ./bin ./src/%s/*.java\n\n",myReplace(packName,'.','/'));
+	sprintf(line2,"	javac -cp $(jar):. -d ./bin ./src/%s/*.java\n\n",myReplace(packName,'.','/'));
 
 	if(fileWriteLine(fp,line1))
 	if(fileWriteLine(fp,"Objs= ./bin/$(path)/*.class\n\n"))
 	if(fileWriteLine(fp,"all:$(Target)\n"))
 	if(fileWriteLine(fp,"	clear;\n"))
-	if(fileWriteLine(fp,"	java -classpath ./bin $< $(args)\n\n"))
+	if(fileWriteLine(fp,"	java -classpath $(jar):bin $< $(args)\n\n"))
 	if(fileWriteLine(fp,"$(Target):\n"))
 	if(fileWriteLine(fp,line2))
 	if(fileWriteLine(fp,"clean:\n"))
