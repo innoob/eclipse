@@ -156,6 +156,7 @@ Make a path to Create project and package
 	char metainf[64];
 	char websrc[32];
 	char webbuild[32];
+	char settings[32];
 	if(proDir[strlen(proDir)-1]!='/'){
 		strcat(proDir,"/");
 	}
@@ -164,6 +165,7 @@ Make a path to Create project and package
 	sprintf(webinf,"%s/WebContent/WEB-INF/lib",proDir);
 	sprintf(metainf,"%s/WebContent/META-INF",proDir);
 	sprintf(websrc,"%s/src",proDir);
+	sprintf(settings,"%s/.settings",proDir);
 	sprintf(webbuild,"%s/build/classes",proDir);
 	crDir(proDir);
 	strcat(proDir,"/bin");
@@ -190,7 +192,12 @@ DEBUG_VAR("",loge);
 		crDir(metainf);
 		crDir(websrc);
 		crDir(webbuild);
-		
+		crDir(settings);
+		crWebClasspath(proName);
+		crWebProject(proName);
+		crWebComponent(proName);
+		crWebFacet(proName);
+		crWebJsdt(proName);
 
 	}else{
 		return putError(0);
@@ -432,9 +439,42 @@ char* crWebClasspath(char* proName){
 	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"con");
 	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8");
 	xmlAddChild(root,chnode);
+
+	xmlNode* itemnode = xmlNewNode(NULL,BAD_CAST"attributes");
+	xmlAddChild(chnode,itemnode);
+	chnode = xmlNewNode(NULL,BAD_CAST"attribute");
+	xmlNewProp(chnode,BAD_CAST"name",BAD_CAST"owner.project.facets");
+	xmlNewProp(chnode,BAD_CAST"value",BAD_CAST"java");
+	xmlAddChild(itemnode,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
+	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"con");
+	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimetarget/apache tomcat v8.0");
+	xmlAddChild(root,chnode);
+
+	itemnode = xmlNewNode(NULL,BAD_CAST"attributes");
+	xmlAddChild(chnode,itemnode);
+	chnode = xmlNewNode(NULL,BAD_CAST"attribute");
+	xmlNewProp(chnode,BAD_CAST"name",BAD_CAST"owner.project.facets");
+	xmlNewProp(chnode,BAD_CAST"value",BAD_CAST"jst.web");
+	xmlAddChild(itemnode,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
+	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"con");
+	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"org.eclipse.jst.j2ee.internal.web.container");
+	xmlAddChild(root,chnode);
+	chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
+	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"con");
+	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"org.eclipse.jst.j2ee.internal.module.container");
+	xmlAddChild(root,chnode);
+	chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
+	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"lib");
+	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"WebContent/WEB-INF/lib");
+	xmlAddChild(root,chnode);
+
 	chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
 	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"output");
-	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"bin");
+	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"build/classes");
 	xmlAddChild(root,chnode);
 	xmlKeepBlanksDefault(0);
 	xmlIndentTreeOutput=1;
@@ -452,6 +492,280 @@ char* crWebClasspath(char* proName){
 	return loge;
 
 }
+
+char* crWebProject(char* proName)
+{
+	char* path;
+	if((path = (char*)malloc(sizeof(char)*128))==NULL) return putError(5);
+	char* loge;
+	strcpy(path,proName);
+	strcat(path,"/.project");
+
+	xmlDoc* doc = xmlNewDoc(BAD_CAST"1.0");
+	doc->encoding = BAD_CAST strdup("UTF-8");
+	xmlNode* root = xmlNewNode(NULL,BAD_CAST"projectDescription");
+	xmlDocSetRootElement(doc,root);
+	xmlNode* chnode = xmlNewNode(NULL,BAD_CAST"name");
+	xmlNodeAddContent(chnode,proName);
+	xmlAddChild(root,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"comment");
+	xmlAddChild(root,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"projects");
+	xmlAddChild(root,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"buildSpec");
+	xmlAddChild(root,chnode);
+	
+	xmlNode* itemnode = xmlNewNode(NULL,BAD_CAST"buildCommand");
+	xmlAddChild(chnode,itemnode);
+	xmlNode* itemnode2 = xmlNewNode(NULL,BAD_CAST"name");
+	xmlNodeAddContent(itemnode2,"org.eclipse.jdt.core.javabuilder");
+	xmlAddChild(itemnode,itemnode2);
+	itemnode2= xmlNewNode(NULL,BAD_CAST"arguments");
+	xmlAddChild(itemnode,itemnode2);
+
+	itemnode = xmlNewNode(NULL,BAD_CAST"buildCommand");
+	xmlAddChild(chnode,itemnode);
+	itemnode2 = xmlNewNode(NULL,BAD_CAST"name");
+	xmlNodeAddContent(itemnode2,"org.eclipse.wst.common.project.facet.core.builder");
+	xmlAddChild(itemnode,itemnode2);
+	itemnode2= xmlNewNode(NULL,BAD_CAST"arguments");
+	xmlAddChild(itemnode,itemnode2);
+
+	itemnode = xmlNewNode(NULL,BAD_CAST"buildCommand");
+	xmlAddChild(chnode,itemnode);
+	itemnode2 = xmlNewNode(NULL,BAD_CAST"name");
+	xmlNodeAddContent(itemnode2,"org.eclipse.wst.validation.validationbuilder");
+	xmlAddChild(itemnode,itemnode2);
+	itemnode2= xmlNewNode(NULL,BAD_CAST"arguments");
+	xmlAddChild(itemnode,itemnode2);
+	
+	chnode = xmlNewNode(NULL,BAD_CAST"natures");
+	xmlAddChild(root,chnode);
+
+	itemnode = xmlNewNode(NULL,BAD_CAST"nature");
+	xmlNodeAddContent(itemnode,"org.eclipse.jem.workbench.JavaEMFNature");
+	xmlAddChild(chnode,itemnode);
+
+	itemnode = xmlNewNode(NULL,BAD_CAST"nature");
+	xmlNodeAddContent(itemnode,"org.eclipse.wst.common.modulecore.ModuleCoreNature");
+	xmlAddChild(chnode,itemnode);
+	
+	itemnode = xmlNewNode(NULL,BAD_CAST"nature");
+	xmlNodeAddContent(itemnode,"org.eclipse.wst.common.project.facet.core.nature");
+	xmlAddChild(chnode,itemnode);
+
+	itemnode = xmlNewNode(NULL,BAD_CAST"nature");
+	xmlNodeAddContent(itemnode,"org.eclipse.jdt.core.javanature");
+	xmlAddChild(chnode,itemnode);
+	
+	itemnode = xmlNewNode(NULL,BAD_CAST"nature");
+	xmlNodeAddContent(itemnode,"org.eclipse.wst.jsdt.core.jsNature");
+	xmlAddChild(chnode,itemnode);
+	
+	xmlKeepBlanksDefault(0);
+	xmlIndentTreeOutput=1;
+
+	if(!xmlSaveFormatFile(path,doc,1)){
+		loge="create .project failed!";
+	}else{
+		loge="create .project success!";
+	}
+	
+	xmlFreeDoc(doc);
+	doc=NULL;
+	free(path);
+	path=NULL;
+
+	return loge;
+
+}
+
+char* crWebComponent(char* proName){
+	char* path;
+	if((path = (char*)malloc(sizeof(char)*128))==NULL) return putError(5);
+	char* loge;
+	strcpy(path,proName);
+	strcat(path,"/.settings/org.eclipse.wst.common.component");
+	char opp[64];
+	sprintf(opp,"/%s/build/classes",proName);
+
+	xmlDoc* doc = xmlNewDoc(BAD_CAST"1.0");
+	doc->encoding = BAD_CAST strdup("UTF-8");
+
+	xmlNode* root = xmlNewNode(NULL,BAD_CAST"project-modules");
+	xmlNewProp(root,BAD_CAST"id",BAD_CAST"moduleCoreId");
+	xmlNewProp(root,BAD_CAST"project-version",BAD_CAST"1.5.0");
+	xmlDocSetRootElement(doc,root);
+
+	xmlNode* chnode = xmlNewNode(NULL,BAD_CAST"wb-module");
+	xmlNewProp(chnode,BAD_CAST"deploy-name",BAD_CAST strdup(proName));
+	xmlAddChild(root,chnode);
+
+	xmlNode* itemnode = xmlNewNode(NULL,BAD_CAST"wb-resource");
+	xmlNewProp(itemnode,BAD_CAST"deploy-path",BAD_CAST"/");
+	xmlNewProp(itemnode,BAD_CAST"source-path",BAD_CAST"/WebContent");
+	xmlNewProp(itemnode,BAD_CAST"tag",BAD_CAST"defaultRootSource");
+	xmlAddChild(chnode,itemnode);
+	
+
+	itemnode = xmlNewNode(NULL,BAD_CAST"wb-resource");
+	xmlNewProp(itemnode,BAD_CAST"deploy-path",BAD_CAST"/WEB-INF/classes");
+	xmlNewProp(itemnode,BAD_CAST"source-path",BAD_CAST"/src");
+	xmlAddChild(chnode,itemnode);
+	
+	itemnode = xmlNewNode(NULL,BAD_CAST"property");
+	xmlNewProp(itemnode,BAD_CAST"name",BAD_CAST"context-root");
+	xmlNewProp(itemnode,BAD_CAST"value",BAD_CAST strdup(proName));
+	xmlAddChild(chnode,itemnode);
+
+	itemnode = xmlNewNode(NULL,BAD_CAST"property");
+	xmlNewProp(itemnode,BAD_CAST"name",BAD_CAST"java-output-path");
+	xmlNewProp(itemnode,BAD_CAST"value",BAD_CAST strdup(opp));
+	xmlAddChild(chnode,itemnode);
+
+	xmlKeepBlanksDefault(0);
+	xmlIndentTreeOutput=1;
+
+	if(!xmlSaveFormatFile(path,doc,1)){
+		loge = "create component failed!";
+	}else{
+		loge="create component success!";
+	}
+	xmlFreeDoc(doc);
+	doc=NULL;
+	free(path);
+	path=NULL;
+
+	return loge;
+}
+
+char* crWebJsdt(char* proName){
+	char* path;
+	if((path = (char*)malloc(sizeof(char)*128))==NULL) return putError(5);
+	char* loge;
+	strcpy(path,proName);
+	strcat(path,"/.settings/.jsdtscope");
+
+	xmlDoc* doc = xmlNewDoc(BAD_CAST"1.0");
+	doc->encoding = BAD_CAST strdup("UTF-8");
+
+	xmlNode* root = xmlNewNode(NULL,BAD_CAST"classpath");
+	xmlDocSetRootElement(doc,root);
+
+	xmlNode* chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
+	xmlNewProp(chnode,BAD_CAST"excluding",BAD_CAST"**/bower_components/*|**/node_modules/*|**/*.min.js");
+	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"src");
+	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"WebContent");
+	xmlAddChild(root,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
+	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"con");
+	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"org.eclipse.wst.jsdt.launching.JRE_CONTAINER");
+	xmlAddChild(root,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
+	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"con");
+	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"org.eclipse.wst.jsdt.launching.WebProject");
+	xmlAddChild(root,chnode);
+
+	xmlNode* itemnode = xmlNewNode(NULL,BAD_CAST"attributes");
+	xmlAddChild(chnode,itemnode);
+	chnode=xmlNewNode(NULL,BAD_CAST"attribute");
+	xmlNewProp(chnode,BAD_CAST"name",BAD_CAST"hide");
+	xmlNewProp(chnode,BAD_CAST"value",BAD_CAST"true");
+	xmlAddChild(itemnode,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
+	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"con");
+	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"org.eclipse.wst.jsdt.launching.baseBrowserLibrary");
+	xmlAddChild(root,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
+	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"output");
+	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"");
+	xmlAddChild(root,chnode);
+
+
+	xmlKeepBlanksDefault(0);
+	xmlIndentTreeOutput=1;
+
+	if(!xmlSaveFormatFile(path,doc,1)){
+		loge = "create jsdt failed!";
+	}else{
+		loge="create jsdt success!";
+	}
+	xmlFreeDoc(doc);
+	doc=NULL;
+	free(path);
+	path=NULL;
+
+	return loge;
+}
+
+char* crWebFacet(char* proName){
+	char* path;
+	if((path = (char*)malloc(sizeof(char)*128))==NULL) return putError(5);
+	char* loge;
+	strcpy(path,proName);
+	strcat(path,"/.settings/org.eclipse.wst.common.project.facet.core.xml");
+
+	xmlDoc* doc = xmlNewDoc(BAD_CAST"1.0");
+	doc->encoding = BAD_CAST strdup("UTF-8");
+
+	xmlNode* root = xmlNewNode(NULL,BAD_CAST"faceted-project");
+	xmlDocSetRootElement(doc,root);
+
+	xmlNode* chnode = xmlNewNode(NULL,BAD_CAST"runtime");
+	xmlNewProp(chnode,BAD_CAST"name",BAD_CAST"Apache Tomcat v8.0");
+	xmlAddChild(root,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"fixed");
+	xmlNewProp(chnode,BAD_CAST"facet",BAD_CAST"jst.web");
+	xmlAddChild(root,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"fixed");
+	xmlNewProp(chnode,BAD_CAST"facet",BAD_CAST"java");
+	xmlAddChild(root,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"fixed");
+	xmlNewProp(chnode,BAD_CAST"facet",BAD_CAST"wst.jsdt.web");
+	xmlAddChild(root,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"installed");
+	xmlNewProp(chnode,BAD_CAST"facet",BAD_CAST"java");
+	xmlNewProp(chnode,BAD_CAST"version",BAD_CAST"1.8");
+	xmlAddChild(root,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"installed");
+	xmlNewProp(chnode,BAD_CAST"facet",BAD_CAST"jst.web");
+	xmlNewProp(chnode,BAD_CAST"version",BAD_CAST"3.1");
+	xmlAddChild(root,chnode);
+
+	chnode = xmlNewNode(NULL,BAD_CAST"installed");
+	xmlNewProp(chnode,BAD_CAST"facet",BAD_CAST"wst.jsdt.web");
+	xmlNewProp(chnode,BAD_CAST"version",BAD_CAST"1.0");
+	xmlAddChild(root,chnode);
+
+	xmlKeepBlanksDefault(0);
+	xmlIndentTreeOutput=1;
+
+	if(!xmlSaveFormatFile(path,doc,1)){
+		loge = "create Facet failed!";
+	}else{
+		loge="create Facet success!";
+	}
+	xmlFreeDoc(doc);
+	doc=NULL;
+	free(path);
+	path=NULL;
+
+	return loge;
+}
+
+
 
 // int crProject(char* path){
 //     //定义文档和节点指针

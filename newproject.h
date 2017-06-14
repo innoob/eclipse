@@ -28,11 +28,11 @@ char* crWebClasspath(char*);
 
 char* crWebMakefile(char*,char*);
 
-char* crWebConponent(char*);
+char* crWebComponent(char*);
 
-char* crWebFacet(void);
+char* crWebFacet(char*);
 
-char* crWebJsdt(void);
+char* crWebJsdt(char*);
 
 /*
 This is a function that is used to handle errors and give hints, 
