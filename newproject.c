@@ -30,12 +30,14 @@ int main(int argc,char** argv)
 	char* proName;
 	char* proDir;
 	char* className;
+	char* projectType;
 	int dbg = 0;
 
 	if((packName=(char*)malloc(sizeof(char)*128))==NULL) return putError(5);
 	if((proName= (char*)malloc(sizeof(char)*128))==NULL) return putError(5);
 	if((proDir= (char*)malloc(sizeof(char)*128))==NULL) return putError(5);
 	if((className=(char*)malloc(sizeof(char)*128))==NULL) return putError(5);
+	if((projectType=(char*)malloc(sizeof(char)*128))==NULL) return putError(5);
 
 	for(int i = 1;i<argc;++i){
 		dbg=!strcmp(argv[i],"-debug");
@@ -69,6 +71,14 @@ DEBUG_VARLIST;
 				my_strcpy(proName,argv[i],2);
 
 DEBUG_VAR("assignment",proName);
+			}else if(argv[i][1]=='t'){
+				if(strlen(argv[i])<3){
+					if(++i<argc&&argv[i][0]!='-') my_strcpy(projectType,argv[i],0);												
+					else return putError(2);
+				}else
+				my_strcpy(projectType,argv[i],2);
+
+DEBUG_VAR("assignment",projectType);
 			}else if(argv[i][1]=='b'){
 				if(strlen(argv[i])<3){
 					if(++i<argc&&argv[i][0]!='-') my_strcpy(packName,argv[i],0);
@@ -116,6 +126,9 @@ DEBUG_VAR("assignment",proDir);
 		}
 	}
 
+	if(!strlen(projectType)){
+		my_strcpy(projectType,"console",0);
+	}
 	if(!strlen(proName)){
 		return putError(1);
 	}
@@ -139,12 +152,20 @@ Make a path to Create project and package
 // DEBUG_VAR("Replace",packName);	
 	
 	char  packPath[128];
-	
+	char webinf[64];
+	char metainf[64];
+	char websrc[32];
+	char webbuild[32];
 	if(proDir[strlen(proDir)-1]!='/'){
 		strcat(proDir,"/");
 	}
 	strcat(proDir,proName);
 	sprintf(packPath,"%s/src/%s",proDir,myReplace(packName,'.','/'));
+	sprintf(webinf,"%s/WebContent/WEB-INF/lib",proDir);
+	sprintf(metainf,"%s/WebContent/META-INF",proDir);
+	sprintf(websrc,"%s/src",proDir);
+	sprintf(webbuild,"%s/build/classes",proDir);
+	crDir(proDir);
 	strcat(proDir,"/bin");
 
 DEBUG_VAR("finaly",proDir);
@@ -152,7 +173,7 @@ DEBUG_VAR("finaly",packPath);
 DEBUG_VAR("finaly",className);
 
 //Create directory in here
-
+	if(!strcmp(projectType,"console")){
 	crDir(proDir);
 	crDir(packPath);
 	char* loge = crClasspath(proName);
@@ -164,6 +185,18 @@ DEBUG_VAR("",loge);
 	loge = crClass(packPath,packName,className);
 DEBUG_VAR("",loge);
 
+	}else if(!strcmp(projectType,"web")){
+		crDir(webinf);
+		crDir(metainf);
+		crDir(websrc);
+		crDir(webbuild);
+		
+
+	}else{
+		return putError(0);
+	}
+
+
 
 	free(proName);
 	proName=NULL;
@@ -173,6 +206,8 @@ DEBUG_VAR("",loge);
 	proDir=NULL;
 	free(className);
 	className=NULL;
+	free(projectType);
+	projectType=NULL;
 
 	return 0;
 }
@@ -376,6 +411,46 @@ char* crClass(char* packPath,char*packName,char* class)
 	free(path);
 	path=NULL;
 	return loge;
+}
+
+char* crWebClasspath(char* proName){
+	char* path;
+	if((path = (char*)malloc(sizeof(char)*128))==NULL) return putError(5);
+	char* loge;
+	strcpy(path,proName);
+	strcat(path,"/.classpath");
+
+	xmlDoc* doc = xmlNewDoc(BAD_CAST"1.0");
+	doc->encoding = BAD_CAST strdup("UTF-8");
+	xmlNode* root = xmlNewNode(NULL,BAD_CAST"classpath");
+	xmlDocSetRootElement(doc,root);
+	xmlNode* chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
+	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"src");
+	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"src");	
+	xmlAddChild(root,chnode);
+	chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
+	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"con");
+	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8");
+	xmlAddChild(root,chnode);
+	chnode = xmlNewNode(NULL,BAD_CAST"classpathentry");
+	xmlNewProp(chnode,BAD_CAST"kind",BAD_CAST"output");
+	xmlNewProp(chnode,BAD_CAST"path",BAD_CAST"bin");
+	xmlAddChild(root,chnode);
+	xmlKeepBlanksDefault(0);
+	xmlIndentTreeOutput=1;
+
+	if(!xmlSaveFormatFile(path,doc,1)){
+		loge = "create .classpath failed!";
+	}else{
+		loge="create .classpath success!";
+	}
+	xmlFreeDoc(doc);
+	doc=NULL;
+	free(path);
+	path=NULL;
+
+	return loge;
+
 }
 
 // int crProject(char* path){

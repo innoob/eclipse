@@ -22,6 +22,18 @@ char* crMakefile(char*,char*);
 
 char* crClass(char*,char*,char*);
 
+char* crWebProject(char*);
+
+char* crWebClasspath(char*);
+
+char* crWebMakefile(char*,char*);
+
+char* crWebConponent(char*);
+
+char* crWebFacet(void);
+
+char* crWebJsdt(void);
+
 /*
 This is a function that is used to handle errors and give hints, 
 which returns an integer that indicates the error state
