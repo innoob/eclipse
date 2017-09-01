@@ -13,7 +13,7 @@ char* crStruct(char*,char*,char*);
 char* crMain(char*,char*,char*);
 char* crTemp(char*,char*,char*,int);
 char* getset(char*);
-char* addpath(char*);
+char* addpath(char*,char*);
 int crDir(const char*);
 
 /*

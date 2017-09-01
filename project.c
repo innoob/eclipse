@@ -104,7 +104,7 @@ DEBUG_VAR("assignment",directory);
 	if(!strlen(filePath)){
 	if(strlen(addjar)){
 		if((strstr(addjar,".jar")-addjar)+4==strlen(addjar)){
-			loge=addpath(addjar);
+			loge=addpath(addjar,directory);
 			return;
 		}else{
 			printf("这不是一个有效的jar包");
@@ -347,17 +347,21 @@ char* getset(char* file)
 	// file=NULL;
 	return loge;
 }
-char* addpath(char* jarpath)
+char* addpath(char* jarpath,char* dir)
 {
 	FILE* fp;
 	if((fp = fopen(".classpath","r+"))==NULL){
 		printf("当前目录不在项目地址");
 		return;
 	}
-
-	crDir("lib");
+	
+	if(!strlen(dir)){
+		dir="lib";
+	}
+	
+	crDir(dir);
 	char cmd[128];
-	sprintf(cmd,"cp %s lib/",jarpath);
+	sprintf(cmd,"cp %s %s",jarpath,dir);
 	system(cmd);
 
 	char jarname[128];
@@ -365,10 +369,13 @@ char* addpath(char* jarpath)
 	while(l-->0)
 		if(jarpath[l]=='/')
 		break;
+	if(dir[strlen(dir)-1]=='/')
+	my_strcpy(jarname,jarpath,l+1);
+	else
 	my_strcpy(jarname,jarpath,l);
 	
 	char addline[128];
-	sprintf(addline,"\t<classpathentry kind=\"lib\" path=\"lib%s\"/>\n</classpath>\0",jarname);
+	sprintf(addline,"\n\t<classpathentry kind=\"lib\" path=\"%s%s\"/>\n</classpath>\0",dir,jarname);
 	fseek(fp,-13,SEEK_END);
 	fputs(addline,fp);
 
